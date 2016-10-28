@@ -1,22 +1,43 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 
-from six import StringIO, iteritems
 import os.path
 import os
-import os
-import re
-import codecs
 import pickle
 from docutils import nodes
 from docutils.parsers import rst
 from docutils.parsers.rst import Directive
-from docutils.statemachine import ViewList
-from sphinx.util.console import bold, darkgreen, brown
 
 import yaml
 
-from i18n import texts
+
+texts = {
+    "en": {
+        "task_title": 'task name',
+        "module_title": 'module',
+        "arg_map": {
+            'when': 'condition',
+            'become': 'sudo',
+            'delegate_to': 'host',
+            'run_once': 'run once',
+            'tags': 'tags',
+            'name': None,
+        },
+    },
+    "ja": {
+        "task_title": u'タスク名',
+        "module_title": u'モジュール',
+        "arg_map": {
+            'when': u'条件',
+            'become': 'sudo',
+            'delegate_to': u'実行ホスト',
+            'run_once': u'一度だけ実行',
+            'tags': u'タグ',
+            'name': None,  # used for
+        },
+    },
+}
+
 
 def is_same_mtime(path1, path2):
     try:
@@ -38,6 +59,7 @@ def basename(path, ext=None):
 
 class Task(object):
     role_name = ""
+
     def __init__(self, filename, name, args, role_name=None):
         self.filename = filename
         self.name = name
@@ -55,18 +77,18 @@ class Task(object):
         field = nodes.field()
         field += [name, body]
         return field
-        
 
     def make_node(self, lang='en'):
         if lang not in texts.keys():
             lang = 'en'
+
         arg_map = texts[lang]["arg_map"]
         task_title = texts[lang]["task_title"]
         module_title = texts[lang]["module_title"]
 
         module = ""
         module_args = []
-        # first, search module 
+        # first, search module
         for arg, m in self.args.items():
             if arg not in arg_map.keys():
                 module = arg
@@ -203,7 +225,7 @@ class AnsibleAutoTaskDirective(Directive):
     def run(self):
         self.assert_has_content()
         env = self.state.document.settings.env
-      
+
 
         if 'playbook' not in self.options:
             msg = 'playbook option is required '
